@@ -13,7 +13,7 @@ import {
 
 const router: Router = express.Router();
 
-//register login router
+//register login User
 router.post("/registeruser", registerUser);
 router.post("/loginuser", loginUser);
 
