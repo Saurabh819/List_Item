@@ -13,13 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addTVShow = exports.removeMovie = exports.addMovie = void 0;
-const movie_1 = require("../model/movie"); // Assuming MovieModel and Movie are exported from a separate file
-const tvshow_1 = require("../model/tvshow"); // Assuming TVShowModel and TVShow are exported from a separate file
+const movie_1 = require("../model/movie");
+const tvshow_1 = require("../model/tvshow");
 const mongoose_1 = __importDefault(require("mongoose"));
 const addMovie = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { title, description, genres, releaseDate, director, actors } = req.body;
-        // Validate request body
         if (!title ||
             !description ||
             !genres ||
@@ -33,7 +32,6 @@ const addMovie = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             });
             return;
         }
-        // Create a new movie instance
         const newMovie = new movie_1.MovieModel({
             title,
             description,
@@ -42,7 +40,6 @@ const addMovie = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             director,
             actors,
         });
-        // Save movie to database
         const savedMovie = yield newMovie.save();
         res.status(201).json({
             success: true,

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { MovieModel, Movie } from "../model/movie"; // Assuming MovieModel and Movie are exported from a separate file
-import { TVShowModel,TVShowDocument } from '../model/tvshow'; // Assuming TVShowModel and TVShow are exported from a separate file
+import { MovieModel, Movie } from "../model/movie"; 
+import { TVShowModel,TVShowDocument } from '../model/tvshow'; 
 import mongoose from "mongoose";
 
 export const addMovie = async (req: Request, res: Response): Promise<void> => {
@@ -8,7 +8,7 @@ export const addMovie = async (req: Request, res: Response): Promise<void> => {
     const { title, description, genres, releaseDate, director, actors } =
       req.body;
 
-    // Validate request body
+   
     if (
       !title ||
       !description ||
@@ -26,7 +26,7 @@ export const addMovie = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Create a new movie instance
+   
     const newMovie: Movie = new MovieModel({
       title,
       description,
@@ -36,7 +36,7 @@ export const addMovie = async (req: Request, res: Response): Promise<void> => {
       actors,
     });
 
-    // Save movie to database
+  
     const savedMovie = await newMovie.save();
 
     res.status(201).json({

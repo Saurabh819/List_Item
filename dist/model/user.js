@@ -39,6 +39,5 @@ const userSchema = new mongoose_1.Schema({
             rating: { type: Number }
         }]
 });
-// Define and export User model based on schema
 const UserModel = mongoose_1.default.model('User', userSchema);
 exports.UserModel = UserModel;

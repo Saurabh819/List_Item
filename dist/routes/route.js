@@ -9,12 +9,15 @@ const userController_1 = require("../controller/userController");
 const movie_tvshowController_1 = require("../controller/movie&tvshowController");
 const mylistController_1 = require("../controller/mylistController");
 const router = express_1.default.Router();
-router.post('/registeruser', userController_1.registerUser);
-router.post('/loginuser', userController_1.loginUser);
-router.post('/addmovie', movie_tvshowController_1.addMovie);
-router.delete('/deletemovie/:id', movie_tvshowController_1.removeMovie);
-router.post('/addtvshow', movie_tvshowController_1.addTVShow);
-router.post('/addtolist', mylistController_1.addToMyList);
-router.get('/mylist', mylistController_1.getAllFromMyList);
-router.delete('/removefromlist/:id', mylistController_1.removeFromMyList);
+//register login router
+router.post("/registeruser", userController_1.registerUser);
+router.post("/loginuser", userController_1.loginUser);
+// add movie and tvshows in to the database
+router.post("/addmovie", movie_tvshowController_1.addMovie);
+router.delete("/deletemovie/:id", movie_tvshowController_1.removeMovie);
+router.post("/addtvshow", movie_tvshowController_1.addTVShow);
+// add movie and tv   shows to mylist
+router.post("/addtomylist", mylistController_1.addToMyList);
+router.delete("/removefrommylist/:id", mylistController_1.removeFromMyList);
+router.get("/getallfrommylist", mylistController_1.getAllFromMyList);
 exports.default = router;

@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 type Genre = 'Action' | 'Comedy' | 'Drama' | 'Fantasy' | 'Horror' | 'Romance' | 'SciFi';
 
-// Define interface representing user document
+
 interface UserDocument extends Document {
   id: string;
   username: string;
@@ -32,7 +32,6 @@ const userSchema: Schema = new Schema({
   }]
 });
 
-// Define and export User model based on schema
  const UserModel = mongoose.model<UserDocument>('User', userSchema);
 
 export { UserModel, UserDocument };

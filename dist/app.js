@@ -21,25 +21,25 @@ const redis = new ioredis_1.default();
 dotenv_1.default.config();
 (0, db_1.default)();
 const app = (0, express_1.default)();
-const PORT = 3000;
+const PORT = 5000;
 app.use(express_1.default.json());
-app.use('/api', route_1.default);
-app.get('/', (req, res) => {
+app.use("/api", route_1.default);
+app.get("/", (req, res) => {
     res.send("Hello from server");
 });
-app.get('/cache', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const cachedData = yield redis.get('cachedData');
+app.get("/cache", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const cachedData = yield redis.get("cachedData");
     if (cachedData) {
         // If data exists in the cache, return it
         res.send(JSON.parse(cachedData));
     }
     else {
         // If data is not in the cache, fetch it from the source
-        const dataToCache = { message: 'Data to be cached' };
-        yield redis.set('cachedData', JSON.stringify(dataToCache), 'EX', 3600); // Cache for 1 hour
+        const dataToCache = { message: "Data to be cached" };
+        yield redis.set("cachedData", JSON.stringify(dataToCache), "EX", 3600); // Cache for 1 hour
         res.send(dataToCache);
     }
 }));
 app.listen(PORT, () => {
-    console.log("Server is running at 3000");
+    console.log("Server is running at 5000");
 });

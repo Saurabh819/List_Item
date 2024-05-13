@@ -38,6 +38,5 @@ const TVShowSchema = new mongoose_1.Schema({
             actors: [{ type: String, required: true }],
         }],
 });
-// Define and export TVShow model based on schema
 const TVShowModel = mongoose_1.default.model('TVShow', TVShowSchema);
 exports.TVShowModel = TVShowModel;

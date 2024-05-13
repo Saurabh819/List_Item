@@ -30,6 +30,5 @@ const TVShowSchema: Schema = new Schema({
   }],
 });
 
-// Define and export TVShow model based on schema
 const TVShowModel = mongoose.model<TVShowDocument>('TVShow', TVShowSchema);
 export {TVShowModel,TVShowDocument}

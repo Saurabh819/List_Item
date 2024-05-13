@@ -34,6 +34,5 @@ const MovieSchema = new mongoose_1.Schema({
     director: { type: String, required: true },
     actors: [{ type: String, required: true }]
 });
-// Define and export Movie model based on schema
 const MovieModel = mongoose_1.default.model('Movie', MovieSchema);
 exports.MovieModel = MovieModel;

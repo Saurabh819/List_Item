@@ -1,151 +1,91 @@
-import { Request, Response } from "express";
-import NodeCache from 'node-cache';
-import { MyListModel, MyListDocument } from "../model/mylist"; // Assuming MyListModel and MyListDocument are exported from a separate file
-import { MovieModel, Movie } from "../model/movie";
-import { TVShowModel, TVShowDocument } from "../model/tvshow";
-import Redis from 'ioredis';
+import { Request, Response } from 'express';
+import { MyListModel } from '../model/mylist';
+import { MovieModel } from '../model/movie';
+import { TVShowModel } from '../model/tvshow';
+import { Redis } from 'ioredis'; // Ensure Redis import is available
 
+// Assuming you have Redis properly configured and connected
 const redis = new Redis();
+// Controller function to add a movie or TV show to mylist
+export const addToMyList =  async function addToMyList(req: Request, res: Response) {
+  const { userId, mediaId, mediaType } = req.body;
 
-const cache = new NodeCache({ stdTTL: 60 });
+  // Validate request body
+  if (!userId || !mediaId || !mediaType) {
+    return res.status(400).json({ error: 'Invalid request body' });
+  }
 
- export const addToMyList = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
   try {
-    const {
-      type,
-      title,
-      description,
-      genres,
-      releaseDate,
-      director,
-      actors,
-      episodes,
-    } = req.body;
+    // Check if media type is either 'movie' or 'tvshow'
+    if (mediaType !== 'movie' && mediaType !== 'tvshow') {
+      return res.status(400).json({ error: 'Invalid media type' });
+    }
+
+    // Check if the media ID exists in the respective collection
+    let media;
+    if (mediaType === 'movie') {
+      media = await MovieModel.findById(mediaId);
+    } else {
+      media = await TVShowModel.findById(mediaId);
+    }
+
+    if (!media) {
+      return res.status(404).json({ error: 'Media not found' });
+    }
+
+    // Check if the media is already in the user's list
+    const existingMedia = await MyListModel.findOne({ userId, mediaId, mediaType });
+    if (existingMedia) {
+      return res.status(400).json({ error: 'Media already exists in the list' });
+    }
+
+    // Add media to mylist
+    
+    // Construct success message with media information
+    const mediaTitle = mediaType === 'movie' ? (media as any).title : (media as any).title; // Add appropriate property for title
+    const successMessage = `${mediaType.toUpperCase()} '${mediaTitle}' added to mylist successfully`;
+    
+    await MyListModel.create({ userId, mediaId,mediaType, mediaTitle });
+    return res.status(201).json({ message: successMessage, media });
+
+  } catch (error) {
+    console.error('Error adding media to mylist:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+// Controller function to remove a movie or TV show from mylist
+
+export const removeFromMyList = async (req: Request, res: Response) => {
+  try {
+    const { mediaId } = req.params;
 
     // Validate request body
-    if (!type || !title || !description || !genres || !releaseDate) {
-      res
-        .status(400)
-        .json({
-          message:
-            "Type, title, description, genres, and release date are required.",
-        });
-      return;
+    // if (!mediaId) {
+    //   return res.status(400).json({ error: 'Invalid request body' });
+    // }
+
+    // Check if the media exists in the user's list
+    const removedMedia = await MyListModel.findOneAndDelete({ mediaId });
+
+    if (!removedMedia) {
+      return res.status(404).json({ error: 'Media not found in the list' });
     }
 
-    // Check if type is either 'movie' or 'tvShow'
-    if (type !== "movie" && type !== "tvShow") {
-      res
-        .status(400)
-        .json({ message: 'Type must be either "movie" or "tvShow".' });
-      return;
-    }
+    // Construct success message
+    const successMessage = `Media removed from mylist successfully`;
 
-    // Check if the movie or TV show exists in the database
-    if (type === "movie") {
-      const existingMovie = await MovieModel.findOne({ title });
-      if (!existingMovie) {
-        res.status(404).json({ message: "Movie not found in the database." });
-        return;
-      }
-    } else {
-      const existingTVShow = await TVShowModel.findOne({ title });
-      if (!existingTVShow) {
-        res.status(404).json({ message: "TV show not found in the database." });
-        return;
-      }
-    }
+    return res.status(200).json({ message: successMessage });
 
-    // Create a new MyList instance
-    const newMedia: MyListDocument = new MyListModel({
-      type,
-      title,
-      description,
-      genres,
-      releaseDate,
-      director,
-      actors,
-      episodes,
-    });
-
-    // Save media to the database
-    const savedMedia = await newMedia.save();
-
-    res.status(201).json(savedMedia);
   } catch (error) {
-    console.error("Error adding media to MyList:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-export const removeFromMyList = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  try {
-    const { id } = req.params;
-
-    // Validate ID
-    if (!id) {
-      res.status(400).json({ message: "ID is required." });
-      return;
-    }
-
-    // Find media by ID and remove it
-    const deletedMedia = await MyListModel.findByIdAndDelete(id);
-
-    if (!deletedMedia) {
-      res.status(404).json({ message: "Media not found in the list." });
-      return;
-    }
-
-    res
-      .status(200)
-      .json({ message: "Media removed successfully", deletedMedia });
-  } catch (error) {
-    console.error("Error removing media from MyList:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error('Error removing media from mylist:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 
-// export const getAllFromMyList = async (req: Request, res: Response): Promise<void> => {
-
-//   try {
-//       const { page = 1, limit = 10 } = req.query;
-
-//       // Convert page and limit to numbers
-//       const pageNumber = parseInt(page as string, 10);
-//       const limitNumber = parseInt(limit as string, 10);
-
-//       // Validate page and limit values
-//       if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber < 1 || limitNumber < 1) {
-//           res.status(400).json({ message: 'Invalid page or limit value.' });
-//           return;
-//       }
-
-//       // Calculate skip value for pagination
-//       const skip = (pageNumber - 1) * limitNumber;
-
-//       // Retrieve MyList items with pagination and limiting fields
-//       const myListItems = await MyListModel.find({})
-//           .select('type title description genres releaseDate -_id') // Limiting fields
-//           .skip(skip)
-//           .limit(limitNumber);
-
-//       res.status(200).json(myListItems);
-//   } catch (error) {
-//       console.error('Error fetching MyList items:', error);
-//       res.status(500).json({ message: 'Internal server error' });
-//   }
-// };
-
-
-
-export const getAllFromMyList = async (req: Request, res: Response): Promise<void> => {
+// Controller function to get all items from mylist with pagination
+export const getAllFromMyList = async (req: Request, res: Response) => {
   try {
     const { page = 1, limit = 10 } = req.query;
 
@@ -155,8 +95,7 @@ export const getAllFromMyList = async (req: Request, res: Response): Promise<voi
 
     // Validate page and limit values
     if (isNaN(pageNumber) || isNaN(limitNumber) || pageNumber < 1 || limitNumber < 1) {
-      res.status(400).json({ message: 'Invalid page or limit value.' });
-      return;
+      return res.status(400).json({ message: 'Invalid page or limit value.' });
     }
 
     // Check if the data exists in the cache
@@ -165,22 +104,44 @@ export const getAllFromMyList = async (req: Request, res: Response): Promise<voi
 
     if (cachedData) {
       // If data exists in the cache, return it
-      res.status(200).json(JSON.parse(cachedData));
+      const myListItems = JSON.parse(cachedData);
+      return res.status(200).json(myListItems);
     } else {
       // If data is not in the cache, fetch it from the database
       const skip = (pageNumber - 1) * limitNumber;
       const myListItems = await MyListModel.find({})
-        .select('type title description genres releaseDate -_id') // Limiting fields
         .skip(skip)
         .limit(limitNumber);
 
       // Cache the fetched data
       await redis.set(cacheKey, JSON.stringify(myListItems), 'EX', 10); // Cache for 10 seconds
 
-      res.status(200).json(myListItems);
+      // Construct response object with complete media objects
+      const response = await Promise.all(myListItems.map(async (item: any) => {
+        let media;
+        if (item.mediaType === 'movie') {
+          media = await MovieModel.findById(item.mediaId);
+        } else if (item.mediaType === 'tvshow') {
+          media = await TVShowModel.findById(item.mediaId);
+        }
+
+        if (media) {
+          return {
+            userId: item.userId,
+            mediaId: item.mediaId,
+            mediaType: item.mediaType,
+            media: media.toObject() // Convert Mongoose document to plain object
+          };
+        } else {
+          // If media not found, return the original item
+          return item;
+        }
+      }));
+
+      return res.status(200).json(response);
     }
   } catch (error) {
     console.error('Error fetching MyList items:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
